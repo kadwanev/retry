@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+
+require File.expand_path("../../lib/retryit.rb", __FILE__)
+
+RetryIt.new.run(ARGV)
