@@ -54,7 +54,7 @@ class RetryIt
 
   def run(args)
 
-    if (["-h", "-?", "--help"].include? args[0])
+    if (args.size < 1 || ["-h", "-?", "--help"].include?(args[0]))
       load_options(args)
     end
 
