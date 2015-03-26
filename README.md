@@ -24,6 +24,12 @@ Help:
 
 ### Examples
 
+No problem:
+
+`retry echo u work good`
+
+    u work good
+
 Test functionality:
 
 `retry 'echo "y u no work"; false'`
