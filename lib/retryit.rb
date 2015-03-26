@@ -18,6 +18,11 @@ class RetryIt
     optparser = OptionParser.new do |opts|
       opts.banner = "Usage: retry [options] -e execute command"
 
+      opts.on("-h", "-?", "--help") do |v|
+        puts opts
+        exit
+      end
+
       opts.on("-t#", "--tries=#", Integer, "Set max retries: Default 10") do |v|
         @max_tries = v
       end
@@ -26,11 +31,11 @@ class RetryIt
         @constant_sleep = v
       end
 
-      opts.on("--min=secs", Float, "Exponenetial Backoff: minimum sleep amount (seconds): Default 0.3") do |v|
+      opts.on("-m#", "--min=secs", Float, "Exponenetial Backoff: minimum sleep amount (seconds): Default 0.3") do |v|
         @min_sleep = v
       end
 
-      opts.on("--max=secs", Float, "Exponenetial Backoff: maximum sleep amount (seconds): Default 60") do |v|
+      opts.on("-x#", "--max=secs", Float, "Exponenetial Backoff: maximum sleep amount (seconds): Default 60") do |v|
         @max_sleep = v
       end
 
@@ -48,6 +53,10 @@ class RetryIt
   end
 
   def run(args)
+
+    if (["-h", "-?", "--help"].include? args[0])
+      load_options(args)
+    end
 
     idx = args.find_index("-e")
     if !idx.nil?
