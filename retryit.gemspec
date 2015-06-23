@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name        = 'retryit'
-  s.version     = '0.1.2'
+  s.version     = '0.1.3'
   s.summary     = "retry any command line"
   s.description = "General purpose retry cli program for anything"
   s.authors     = ["Neville Kadwa"]
