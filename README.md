@@ -15,8 +15,9 @@ Help:
 
 `retry -?`
 
-    Usage: retry [options] -e execute command
+    Usage: retry [options] [-f fail_script +commands] -e execute command
         -h, -?, --help
+        -f                               Execute fail script after all retries are exhausted
         -t, --tries=#                    Set max retries: Default 10
         -s, --sleep=secs                 Constant sleep amount (seconds)
         -m, --min=secs                   Exponenetial Backoff: minimum sleep amount (seconds): Default 0.3
@@ -55,6 +56,7 @@ Test functionality:
     y u no work
     Before retry #10: sleeping 60.0 seconds
     y u no work
+    etc..
 
 Limit retries:
 
@@ -69,12 +71,27 @@ Limit retries:
     y u no work
     Before retry #4: sleeping 2.4 seconds
     y u no work
+    Retries exhausted
 
 Bad command:
 
 `retry poop`
 
     Command Failed: poop
+
+Fail command:
+
+`retry -t 3 -f echo "oh poopsickles" -e 'echo "y u no work"; false'`
+
+    y u no work
+    Before retry #1: sleeping 0.3 seconds
+    y u no work
+    Before retry #2: sleeping 0.6 seconds
+    y u no work
+    Before retry #3: sleeping 1.2 seconds
+    y u no work
+    Retries exhausted, running fail script
+    oh poopsickles
 
 ### License
 

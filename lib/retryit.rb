@@ -16,7 +16,7 @@ class RetryIt
     return if args.size < 1
 
     optparser = OptionParser.new do |opts|
-      opts.banner = "Usage: retry [options] -e execute command"
+      opts.banner = "Usage: retry [options] [-f fail_script +commands] -e execute command"
 
       opts.on("-h", "-?", "--help") do |v|
         puts opts
@@ -58,11 +58,23 @@ class RetryIt
       load_options(["-?"])
     end
 
-    idx = args.find_index("-e")
+    fail_command = nil
+
+    idx = args.find_index("-f") || args.find_index("-e")
     if !idx.nil?
       load_options(args[0...idx])
+      if (args[idx] == "-f")
+        e_idx = args.find_index("-e")
+        raise "fail script (-f) must be combined with execution script (-e)" if e_idx.nil?
+        raise "fail script not defined" if idx == e_idx
+        fail_command = args[(idx+1)..(e_idx-1)]
+        idx = e_idx
+      end
       args = args[(idx+1)..-1]
     end
+
+    #log_out("Run script #{args[0]} #{args[1..-1]}")
+    #log_out("Fail script #{fail_command[0]} #{fail_command[1..-1]}") unless fail_command.nil?
 
     raise "max_tries must be greater than 0" unless @max_tries > 0
     raise "minimum sleep cannot be greater than maximum sleep" unless @max_sleep >= @min_sleep
@@ -82,7 +94,16 @@ class RetryIt
       attempts += 1
     end
 
-    log_out("Command Failed: #{args[0]}") if success.nil?
+    if success.nil?
+      log_out("Command Failed: #{args[0]}")
+    elsif attempts > @max_tries
+      if !fail_command.nil?
+        log_out("Retries exhausted, running fail script")
+        system(fail_command[0], *fail_command[1..-1])
+      else
+        log_out("Retries exhausted")
+      end
+    end
     exit process.exitstatus
   end
 
