@@ -4,6 +4,8 @@ __sleep_amount() {
   if [ -n "$constant_sleep" ]; then 
     sleep_time=$constant_sleep
   else
+    #TODO: check for awk
+    #TODO: check if user would rather use one of the other possible dependencies: python, ruby, bc, dc
     sleep_time=`awk "BEGIN {t = $min_sleep * $(( (1<<($attempts -1)) )); print (t > $max_sleep ? $max_sleep : t)}"`
   fi
 }
@@ -38,7 +40,11 @@ retry()
       __log_out "Before retry #$attempts: sleeping $sleep_time seconds"
       sleep $sleep_time
     fi
-    eval $*
+
+    P="$1"
+    for param in "${@:2}"; do P="$P '$param'"; done
+    #TODO: replace single quotes in each arg with '"'"' ?
+    bash -c "$P"
     return_code=$?
     #__log_out "Process returned $return_code on attempt $attempts"
     if [ $return_code -eq 127 ]; then
@@ -148,6 +154,6 @@ EOF
       esac
   done
 
-  retry "$max_tries" "$min_sleep" "$max_sleep" "$constant_sleep" "$fail_script" $*
+  retry "$max_tries" "$min_sleep" "$max_sleep" "$constant_sleep" "$fail_script" "$@"
   
 fi
