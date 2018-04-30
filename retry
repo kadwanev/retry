@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+GETOPT_BIN=$IN_GETOPT_BIN
+GETOPT_BIN=${GETOPT_BIN:-getopt}
+
 __sleep_amount() {
   if [ -n "$constant_sleep" ]; then 
     sleep_time=$constant_sleep
@@ -93,7 +96,7 @@ EOF
     exit 0
   fi
 
-  getopt --test > /dev/null
+  $GETOPT_BIN --test > /dev/null
   if [[ $? -ne 4 ]]; then
       echo "I’m sorry, 'getopt --test' failed in this environment. Please load GNU getopt."
       exit 1
@@ -102,7 +105,7 @@ EOF
   OPTIONS=vt:s:m:x:f:
   LONGOPTIONS=verbose,tries:,sleep:,min:,max:,fail:
 
-  PARSED=$(getopt --options="$OPTIONS" --longoptions="$LONGOPTIONS" --name "$0" -- "$@")
+  PARSED=$($GETOPT_BIN --options="$OPTIONS" --longoptions="$LONGOPTIONS" --name "$0" -- "$@")
   if [[ $? -ne 0 ]]; then
     # e.g. $? == 1
     #  then getopt has complained about wrong arguments to stdout
