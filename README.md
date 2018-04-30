@@ -16,12 +16,10 @@ sudo sh -c "curl https://raw.githubusercontent.com/kadwanev/retry/master/retry -
 If you're on OS X, retry is also on Homebrew:
 
 ```
-brew pull 23206
+brew pull 27283
 brew install retry
 ```
-Apply fix described in https://github.com/kadwanev/retry/issues/10
-
-~~Not popular enough for homebrew-core. Please star this project to help.~~
+Not popular enough for homebrew-core. Please star this project to help.
 
 ### Usage
 
