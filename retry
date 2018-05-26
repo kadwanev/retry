@@ -38,7 +38,7 @@ __sleep_amount() {
         sleep_time=`bc <<< "t=${min_sleep}*(2^(${attempts}-1)); if (t>${max_sleep}) ${max_sleep} else t;"`
         ;;
       perl)
-        sleep_time=`perl -E "my \$t = ${min_sleep} * ( 2 ** ( ${attempts} - 1 ) ); say \$t > ${max_sleep} ? ${max_sleep} : \$t;"`
+        sleep_time=`perl -E "my \\\$t = ${min_sleep} * ( 2 ** ( ${attempts} - 1 ) ); say \\\$t > ${max_sleep} ? ${max_sleep} : \\\$t;"`
         ;;
       *)
         sleep_time=$(( min_sleep * ( 2 ** ( attempts - 1 ) ) ))
