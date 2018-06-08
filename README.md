@@ -118,6 +118,37 @@ Last attempt passed:
     Before retry #3: sleeping 1.2 seconds
     Passed at attempt 3
 
+Retry with functions:
+
+`retry . ./funtion.sh && cmd`
+
+```
+cat test.sh
+bash```
+```
+#!/bin/bash
+function foo() {
+	echo 1
+}
+
+function bar() {
+     retry . ./test.sh && foo
+}
+bash```
+```
+cat test2.sh
+bash```
+
+```
+#!/bin/bash
+. ./test.sh
+bar
+bash```
+
+```
+Run:
+sh test2.sh
+bash```
 ### License
 
 Apache 2.0 - go nuts
