@@ -120,35 +120,39 @@ Last attempt passed:
 
 Retry with functions:
 
-`retry . ./funtion.sh && cmd`
+`retry '. ./funtion.sh && cmd'`
 
 ```
 cat test.sh
-bash```
-```
 #!/bin/bash
 function foo() {
-	echo 1
+	echo 1 && false
 }
 
 function bar() {
-     retry . ./test.sh && foo
+     retry -t 3 '. ./test.sh && foo'
 }
-bash```
-```
-cat test2.sh
-bash```
 
-```
+cat test2.sh
 #!/bin/bash
 . ./test.sh
 bar
-bash```
 
-```
 Run:
 sh test2.sh
-bash```
+```
+```
+/bin/bash /Users/lio/PycharmProjects/liozzazhang/ecs/test2.sh
+1
+Before retry #1: sleeping 0.3 seconds
+1
+Before retry #2: sleeping 0.6 seconds
+1
+Before retry #3: sleeping 1.2 seconds
+Retries exhausted
+1
+```
+
 ### License
 
 Apache 2.0 - go nuts
