@@ -118,6 +118,41 @@ Last attempt passed:
     Before retry #3: sleeping 1.2 seconds
     Passed at attempt 3
 
+Retry with functions:
+
+`retry '. ./funtion.sh && cmd'`
+
+```
+cat test.sh
+#!/bin/bash
+function foo() {
+	echo 1 && false
+}
+
+function bar() {
+     retry -t 3 '. ./test.sh && foo'
+}
+
+cat test2.sh
+#!/bin/bash
+. ./test.sh
+bar
+
+Run:
+sh test2.sh
+```
+```
+/bin/bash /Users/lio/PycharmProjects/liozzazhang/ecs/test2.sh
+1
+Before retry #1: sleeping 0.3 seconds
+1
+Before retry #2: sleeping 0.6 seconds
+1
+Before retry #3: sleeping 1.2 seconds
+Retries exhausted
+1
+```
+
 ### License
 
 Apache 2.0 - go nuts
