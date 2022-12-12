@@ -2,14 +2,51 @@
 
 GETOPT_BIN=$IN_GETOPT_BIN
 GETOPT_BIN=${GETOPT_BIN:-getopt}
+CALCULATOR_BIN="none"
+
+__select_calculator_bin() {
+  # Do we need float operations? If so find a calculator or fallback to integer arithmetics.
+  if [[ $min_sleep =~ [.] ]] || [[ $max_sleep =~ [.] ]]; then
+    if which awk &>/dev/null; then
+      CALCULATOR_BIN="awk"
+      return
+    elif which bc &>/dev/null; then
+      CALCULATOR_BIN="bc"
+      return
+    elif which perl &>/dev/null; then
+      CALCULATOR_BIN="perl"
+      return
+    fi
+  fi
+  # Truncate values for integer arithmetics
+  min_sleep=${min_sleep%%.*}
+  max_sleep=${max_sleep%%.*}
+  if (( min_sleep < 1 )); then
+    min_sleep=1
+  fi
+}
 
 __sleep_amount() {
   if [ -n "$constant_sleep" ]; then 
     sleep_time=$constant_sleep
   else
-    #TODO: check for awk
-    #TODO: check if user would rather use one of the other possible dependencies: python, ruby, bc, dc
-    sleep_time=`awk "BEGIN {t = $min_sleep * $(( (1<<($attempts -1)) )); print (t > $max_sleep ? $max_sleep : t)}"`
+    case "$CALCULATOR_BIN" in
+      awk)
+        sleep_time=`awk "BEGIN {t = ${min_sleep} * $(( (1<<(${attempts} -1)) )); print (t > ${max_sleep} ? ${max_sleep} : t)}"`
+        ;;
+      bc)
+        sleep_time=`bc <<< "t=${min_sleep}*(2^(${attempts}-1)); if (t>${max_sleep}) ${max_sleep} else t;"`
+        ;;
+      perl)
+        sleep_time=`perl -E "my \\\$t = ${min_sleep} * ( 2 ** ( ${attempts} - 1 ) ); say \\\$t > ${max_sleep} ? ${max_sleep} : \\\$t;"`
+        ;;
+      *)
+        sleep_time=$(( min_sleep * ( 2 ** ( attempts - 1 ) ) ))
+        if (( sleep_time > max_sleep )); then
+          sleep_time=${max_sleep}
+        fi
+        ;;
+    esac
   fi
 }
 
@@ -45,8 +82,7 @@ retry()
     fi
 
     P="$1"
-    for param in "${@:2}"; do P="$P '$param'"; done
-    #TODO: replace single quotes in each arg with '"'"' ?
+    for param in "${@:2}"; do P="$P '${param//\'/\'\"\'\"\'}'"; done
     export RETRY_ATTEMPT=$attempts
     bash -c "$P"
     return_code=$?
@@ -128,20 +164,28 @@ EOF
               shift
               ;;
           -t|--tries)
-              max_tries="$2"
-              shift 2
+              if [[ $2 =~ ^[0-9]+$ ]]; then
+                  max_tries="$2"
+                  shift 2
+              fi
               ;;
           -s|--sleep)
-              constant_sleep="$2"
-              shift 2
+              if [[ $2 =~ ^[0-9.]+$ ]]; then
+                  constant_sleep="$2"
+                  shift 2
+              fi
               ;;
           -m|--min)
-              min_sleep="$2"
-              shift 2
+              if [[ $2 =~ ^[0-9.]+$ ]]; then
+                  min_sleep="$2"
+                  shift 2
+              fi
               ;;
           -x|--max)
-              max_sleep="$2"
-              shift 2
+              if [[ $2 =~ ^[0-9.]+$ ]]; then
+                  max_sleep="$2"
+                  shift 2
+              fi
               ;;
           -f|--fail)
               fail_script="$2"
@@ -157,6 +201,8 @@ EOF
               ;;
       esac
   done
+
+  __select_calculator_bin
 
   retry "$max_tries" "$min_sleep" "$max_sleep" "$constant_sleep" "$fail_script" "$@"
 
