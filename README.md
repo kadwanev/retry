@@ -35,6 +35,10 @@ Help:
         -x, --max=secs                   Exponential Backoff: maximum sleep amount (seconds): Default 60
         -f, --fail="script +cmds"        Fail Script: run in case of final failure
 
+#### State
+
+Environment variable `RETRY_ATTEMPT` is set with the current attempt number.
+
 ### Examples
 
 No problem:
