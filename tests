@@ -1,0 +1,24 @@
+#! /usr/bin/env bash
+
+failed=
+
+./retry 'echo hello' \
+| grep -q hello \
+|| failed=' 1-command-runs'
+
+./retry -t 3 false 2>&1 \
+| tr '\n' ! \
+| grep -q 'Before retry #3: sleeping [0-9.]* seconds!Retries exhausted!$' \
+|| failed="$failed 2-retrying-works"
+
+output=$(./retry -t 1 -f 'echo "mission failed"; exit 99' false 2>&1)
+status=$?
+
+echo "$output!$status" \
+| tr '\n' ! \
+| grep -q 'mission failed!99!$' \
+|| failed="$failed 3-fail-script-runs"
+
+[[ $failed = "" ]] && exit 0
+echo "tests failed:$failed"
+exit 1
