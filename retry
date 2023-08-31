@@ -4,11 +4,12 @@ GETOPT_BIN=$IN_GETOPT_BIN
 GETOPT_BIN=${GETOPT_BIN:-getopt}
 
 __sleep_amount() {
-  if [ -n "$constant_sleep" ]; then 
+  if [ -n "$constant_sleep" ]; then
     sleep_time=$constant_sleep
   else
     #TODO: check if user would rather use one of the other possible dependencies: python, ruby, bc, dc
-    sleep_time=`awk "BEGIN {t = $min_sleep * $(( (1<<($attempts -1)) )); print (t > $max_sleep ? $max_sleep : t)}"`
+    # shellcheck disable=SC2004
+    sleep_time=$(awk "BEGIN {t = $min_sleep * $(( (1<<($attempts -1)) )); print (t > $max_sleep ? $max_sleep : t)}")
   fi
 }
 
@@ -37,10 +38,10 @@ retry()
 
 
   while [[ $return_code -ne 0 && $attempts -le $max_tries ]]; do
-    if [ $attempts -gt 0 ]; then
+    if [[ $attempts -gt 0 ]]; then
       __sleep_amount
       __log_out "Before retry #$attempts: sleeping $sleep_time seconds"
-      sleep $sleep_time
+      sleep "$sleep_time"
     fi
 
     P="$1"
@@ -54,14 +55,14 @@ retry()
       # command not found
       exit $return_code
     elif [ $return_code -ne 0 ]; then
-      attempts=$[$attempts +1]
+      attempts=$((attempts +1))
     fi
   done
 
-  if [ $attempts -gt $max_tries ]; then
+  if [[ $attempts -gt $max_tries ]]; then
     if [ -n "$fail_script" ]; then
       __log_out "Retries exhausted, running fail script"
-      eval $fail_script
+      eval "$fail_script"
     else
       __log_out "Retries exhausted"
     fi
@@ -71,11 +72,13 @@ retry()
 }
 
 # If we're being sourced, don't worry about such things
-if [ "$BASH_SOURCE" == "$0" ]; then
+if [ "${BASH_SOURCE[0]}" == "$0" ]; then
   # Prints the help text
   help()
   {
-    local retry=$(basename $0)
+    local retry
+    retry=$(basename "$0")
+
     cat <<EOF
 Usage: $retry [options] -- execute command
     -h, -?, --help
@@ -108,10 +111,9 @@ EOF
   OPTIONS=vt:s:m:x:f:
   LONGOPTIONS=verbose,tries:,sleep:,min:,max:,fail:
 
-  PARSED=$($GETOPT_BIN --options="$OPTIONS" --longoptions="$LONGOPTIONS" --name "$0" -- "$@")
-  if [[ $? -ne 0 ]]; then
-    # e.g. $? == 1
-    #  then getopt has complained about wrong arguments to stdout
+  if ! PARSED=$($GETOPT_BIN --options="$OPTIONS" --longoptions="$LONGOPTIONS" --name "$0" -- "$@"); then
+    # if exit status is 1,
+    # then getopt has complained about wrong arguments to stdout
     exit 2
   fi
   # read getopt’s output this way to handle the quoting right:
